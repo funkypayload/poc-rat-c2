@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Outlook — IT Helpdesk</title>
+  <style>
+    /* ============================================================
+       Mock interfejsu Outlook — wiadomość phishingowa
+       Projekt akademicki / cel edukacyjny
+       Autorzy: Oliwia Giza
+       Uczelnia: Uniwersytet Vizja, 2025/2026
+       ============================================================ */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 13px;
+      background: #f0f0f0;
+      color: #1a1a1a;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Pasek tytułowy Windows ── */
+    .win-titlebar {
+      height: 32px;
+      background: #0078d4;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .win-titlebar .app-icon {
+      width: 20px; height: 20px; margin-right: 8px;
+      background: #fff;
+      border-radius: 2px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; color: #0078d4;
+    }
+    .win-titlebar .title { color: #fff; font-size: 12px; flex: 1; }
+    .win-titlebar .wbtns { display: flex; }
+    .win-titlebar .wbtn {
+      width: 46px; height: 32px; border: none; background: transparent;
+      color: #fff; font-size: 13px; cursor: default;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .win-titlebar .wbtn:hover { background: rgba(255,255,255,.15); }
+    .win-titlebar .wbtn.cls:hover { background: #c42b1c; }
+
+    /* ── Ribbon Outlooka ── */
+    .ribbon {
+      background: #fff;
+      border-bottom: 1px solid #d1d1d1;
+      flex-shrink: 0;
+    }
+    .ribbon-tabs {
+      display: flex;
+      padding: 0 8px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .ribbon-tab {
+      padding: 6px 14px;
+      font-size: 12px;
+      color: #444;
+      cursor: default;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .ribbon-tab.active {
+      color: #0078d4;
+      border-bottom-color: #0078d4;
+      font-weight: 600;
+    }
+    .ribbon-tab:hover:not(.active) { background: #f5f5f5; }
+    .ribbon-actions {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      gap: 2px;
+    }
+    .ribbon-btn {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 4px 10px; border: none; background: transparent;
+      font-size: 11px; color: #444; cursor: default; border-radius: 2px;
+      gap: 2px; min-width: 48px;
+    }
+    .ribbon-btn:hover { background: #e8e8e8; }
+    .ribbon-btn .icon { font-size: 18px; line-height: 1; }
+    .ribbon-sep {
+      width: 1px; height: 40px; background: #e0e0e0; margin: 0 4px;
+    }
+
+    /* ── Główny layout ── */
+    .app-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ── Lewy sidebar — lista folderów ── */
+    .sidebar {
+      width: 200px;
+      background: #f8f8f8;
+      border-right: 1px solid #d1d1d1;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+    .sidebar-account {
+      padding: 10px 12px 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #0078d4;
+    }
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      padding: 5px 12px 5px 20px;
+      font-size: 12px;
+      color: #333;
+      cursor: default;
+      gap: 8px;
+    }
+    .sidebar-item:hover { background: #e8e8e8; }
+    .sidebar-item.active {
+      background: #ddeeff;
+      color: #0078d4;
+      font-weight: 600;
+    }
+    .sidebar-item .badge {
+      margin-left: auto;
+      background: #0078d4;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 10px;
+      padding: 1px 6px;
+      font-weight: 700;
+    }
+
+    /* ── Lista wiadomości ── */
+    .mail-list {
+      width: 280px;
+      border-right: 1px solid #d1d1d1;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      overflow-y: auto;
+    }
+    .mail-list-header {
+      padding: 8px 12px;
+      font-size: 11px;
+      color: #888;
+      background: #f5f5f5;
+      border-bottom: 1px solid #e8e8e8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    .mail-item {
+      padding: 10px 12px;
+      border-bottom: 1px solid #f0f0f0;
+      cursor: default;
+      position: relative;
+    }
+    .mail-item:hover { background: #f5f5f5; }
+    .mail-item.selected { background: #ddeeff; border-left: 3px solid #0078d4; }
+    .mail-item.unread .mail-sender { font-weight: 700; }
+    .mail-item.unread::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 4px; height: 4px;
+      background: #0078d4;
+      border-radius: 50%;
+    }
+    .mail-sender { font-size: 12px; color: #1a1a1a; }
+    .mail-date   { font-size: 11px; color: #888; float: right; }
+    .mail-subject{ font-size: 12px; color: #333; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mail-preview{ font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Panel podglądu wiadomości ── */
+    .mail-view {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    /* Nagłówek wiadomości */
+    .msg-header {
+      padding: 16px 24px 12px;
+      border-bottom: 1px solid #e8e8e8;
+      flex-shrink: 0;
+    }
+    .msg-subject {
+      font-size: 18px;
+      font-weight: 400;
+      color: #1a1a1a;
+      margin-bottom: 12px;
+    }
+    .msg-meta {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .msg-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #0078d4;
+      color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 700;
+      flex-shrink: 0;
+    }
+    .msg-from-block { flex: 1; }
+    .msg-from-name  { font-size: 13px; font-weight: 600; }
+    .msg-from-email { font-size: 12px; color: #666; }
+    .msg-to         { font-size: 12px; color: #666; margin-top: 2px; }
+    .msg-timestamp  { font-size: 12px; color: #888; flex-shrink: 0; }
+
+    /* Treść wiadomości */
+    .msg-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0;
+    }
+
+    /* ── Treść emaila phishingowego ── */
+    .email-content {
+      max-width: 640px;
+      margin: 20px 24px;
+      font-family: Calibri, Arial, sans-serif;
+    }
+    .email-header-bar {
+      background: #0067b8;
+      padding: 16px 24px;
+      border-radius: 2px 2px 0 0;
+    }
+    .email-header-bar h1 {
+      color: #fff;
+      font-size: 15px;
+      font-weight: 600;
+      margin: 0;
+    }
+    .email-header-bar p {
+      color: #c8dff5;
+      font-size: 12px;
+      margin: 3px 0 0;
+    }
+    .email-alert {
+      background: #fff4ce;
+      border-left: 4px solid #f0c000;
+      padding: 10px 16px;
+      font-size: 13px;
+      color: #7a4f00;
+    }
+    .email-alert b { display: block; margin-bottom: 3px; font-size: 13px; }
+    .email-body-text {
+      padding: 16px 24px;
+      font-size: 13px;
+      line-height: 1.7;
+      color: #1a1a1a;
+      border: 1px solid #e8e8e8;
+      border-top: none;
+    }
+    .email-body-text p { margin: 10px 0; }
+    .email-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 13px;
+    }
+    .email-table th {
+      background: #f0f0f0;
+      text-align: left;
+      padding: 6px 10px;
+      font-weight: 600;
+      border: 1px solid #ddd;
+    }
+    .email-table td {
+      padding: 6px 10px;
+      border: 1px solid #ddd;
+    }
+    .email-btn {
+      display: inline-block;
+      background: #0067b8;
+      color: #fff;
+      text-decoration: none;
+      padding: 9px 22px;
+      font-size: 13px;
+      font-weight: 600;
+      border-radius: 2px;
+      margin: 8px 0;
+    }
+    .email-footer-bar {
+      background: #f5f5f5;
+      border: 1px solid #e8e8e8;
+      border-top: none;
+      padding: 10px 24px;
+      font-size: 11px;
+      color: #888;
+      border-radius: 0 0 2px 2px;
+    }
+    .email-footer-bar a { color: #0067b8; text-decoration: none; }
+    .critical { color: #e81123; font-weight: 700; }
+
+    /* Pasek statusu */
+    .statusbar {
+      height: 22px;
+      background: #f0f0f0;
+      border-top: 1px solid #d1d1d1;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-size: 11px;
+      color: #666;
+      flex-shrink: 0;
+      gap: 16px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pasek tytułowy Windows -->
+  <div class="win-titlebar">
+    <div class="app-icon">O</div>
+    <span class="title">Skrzynka odbiorcza — Outlook</span>
+    <div class="wbtns">
+      <button class="wbtn">&#8211;</button>
+      <button class="wbtn">&#9633;</button>
+      <button class="wbtn cls">&#10005;</button>
+    </div>
+  </div>
+
+  <!-- Ribbon -->
+  <div class="ribbon">
+    <div class="ribbon-tabs">
+      <div class="ribbon-tab active">Narzędzia główne</div>
+      <div class="ribbon-tab">Wyślij / Odbierz</div>
+      <div class="ribbon-tab">Folder</div>
+      <div class="ribbon-tab">Widok</div>
+    </div>
+    <div class="ribbon-actions">
+      <button class="ribbon-btn"><span class="icon">&#128394;</span>Nowa<br>wiadomość</button>
+      <div class="ribbon-sep"></div>
+      <button class="ribbon-btn"><span class="icon">&#8617;</span>Odpowiedz</button>
+      <button class="ribbon-btn"><span class="icon">&#8618;</span>Odpowiedz<br>wszystkim</button>
+      <button class="ribbon-btn"><span class="icon">&#10149;</span>Prześlij<br>dalej</button>
+      <div class="ribbon-sep"></div>
+      <button class="ribbon-btn"><span class="icon">&#128465;</span>Usuń</button>
+      <button class="ribbon-btn"><span class="icon">&#128193;</span>Archiwum</button>
+      <div class="ribbon-sep"></div>
+      <button class="ribbon-btn"><span class="icon">&#128274;</span>Zgłoś<br>phishing</button>
+    </div>
+  </div>
+
+  <!-- Ciało aplikacji -->
+  <div class="app-body">
+
+    <!-- Sidebar folderów -->
+    <div class="sidebar">
+      <div class="sidebar-account">user@company.local</div>
+      <div class="sidebar-item active">&#128386; Skrzynka odbiorcza <span class="badge">1</span></div>
+      <div class="sidebar-item">&#9733; Elementy oznaczone</div>
+      <div class="sidebar-item">&#128336; Odroczone</div>
+      <div class="sidebar-item">&#128196; Elementy wysłane</div>
+      <div class="sidebar-item">&#128465; Elementy usunięte</div>
+      <div class="sidebar-item">&#128194; Robocze</div>
+      <div class="sidebar-item">&#128193; Archiwum</div>
+      <div class="sidebar-item">&#128220; Śmieci</div>
+    </div>
+
+    <!-- Lista wiadomości -->
+    <div class="mail-list">
+      <div class="mail-list-header">
+        <span>Skrzynka odbiorcza</span>
+        <span>1 nieprzeczytana</span>
+      </div>
+
+      <!-- Wiadomość phishingowa — zaznaczona -->
+      <div class="mail-item unread selected">
+        <div>
+          <span class="mail-sender">IT Helpdesk</span>
+          <span class="mail-date">09:14</span>
+        </div>
+        <div class="mail-subject">[PILNE] Wymagana aktualizacja zabezpieczeń</div>
+        <div class="mail-preview">Szanowny Użytkowniku, w ramach audytu...</div>
+      </div>
+
+      <!-- Inne wiadomości — tło -->
+      <div class="mail-item">
+        <div>
+          <span class="mail-sender">Microsoft 365</span>
+          <span class="mail-date">Wto</span>
+        </div>
+        <div class="mail-subject">Twój raport aktywności za ubiegły tydzień</div>
+        <div class="mail-preview">Sprawdź jak korzystasz z aplikacji Microsoft 365...</div>
+      </div>
+      <div class="mail-item">
+        <div>
+          <span class="mail-sender">HR Department</span>
+          <span class="mail-date">Pon</span>
+        </div>
+        <div class="mail-subject">Przypomnienie: ankieta pracownicza 2024</div>
+        <div class="mail-preview">Prosimy o wypełnienie ankiety do piątku...</div>
+      </div>
+      <div class="mail-item">
+        <div>
+          <span class="mail-sender">no-reply@sharepoint.com</span>
+          <span class="mail-date">29 kwi</span>
+        </div>
+        <div class="mail-subject">Bartłomiej D. udostępnił Ci dokument</div>
+        <div class="mail-preview">Q1_2025_Raport.xlsx został udostępniony...</div>
+      </div>
+    </div>
+
+    <!-- Podgląd wiadomości -->
+    <div class="mail-view">
+
+      <!-- Nagłówek wiadomości -->
+      <div class="msg-header">
+        <div class="msg-subject">[PILNE] Wymagana aktualizacja zabezpieczeń systemu — prosimy o działanie</div>
+        <div class="msg-meta">
+          <div class="msg-avatar">IT</div>
+          <div class="msg-from-block">
+            <div class="msg-from-name">IT Helpdesk</div>
+            <div class="msg-from-email">helpdesk@company-it.local</div>
+            <div class="msg-to">Do: user@company.local</div>
+          </div>
+          <div class="msg-timestamp">wtorek, 6 maja 2025, 09:14</div>
+        </div>
+      </div>
+
+      <!-- Treść wiadomości -->
+      <div class="msg-body">
+        <div class="email-content">
+
+          <div class="email-header-bar">
+            <h1>&#128274; Dział IT / Helpdesk — Powiadomienie o zabezpieczeniach</h1>
+            <p>Wiadomość automatyczna systemu zarządzania aktualizacjami</p>
+          </div>
+
+          <div class="email-alert">
+            <b>&#9888; Wykryto krytyczną lukę bezpieczeństwa na Twoim urządzeniu</b>
+            Windows Defender zidentyfikował podatność CVE-2024-38193 na Twoim komputerze.
+            Wymagane jest natychmiastowe zainstalowanie poprawki bezpieczeństwa.
+          </div>
+
+          <div class="email-body-text">
+            <p>Szanowny Użytkowniku,</p>
+            <p>
+              W ramach rutynowego audytu bezpieczeństwa infrastruktury IT wykryliśmy,
+              że Twoje urządzenie nie posiada zainstalowanej krytycznej aktualizacji
+              zabezpieczeń systemu Windows. Brak tej aktualizacji naraża urządzenie
+              oraz dane firmowe na nieautoryzowany dostęp z zewnątrz.
+            </p>
+            <p>Szczegóły wymaganej aktualizacji:</p>
+
+            <table class="email-table">
+              <tr><th>Numer KB</th><td>KB5034441</td></tr>
+              <tr><th>Klasyfikacja</th><td>Krytyczna aktualizacja zabezpieczeń</td></tr>
+              <tr><th>Dotyczy</th><td>Windows 10 (wszystkie edycje)</td></tr>
+              <tr><th>CVE</th><td>CVE-2024-38193 (CVSS 9.8)</td></tr>
+              <tr><th>Termin instalacji</th><td><span class="critical">Do końca dnia roboczego</span></td></tr>
+            </table>
+
+            <p>
+              Prosimy o niezwłoczne zainstalowanie aktualizacji klikając przycisk poniżej.
+              Proces instalacji potrwa około 5–10 minut i może wymagać restartu systemu.
+            </p>
+
+            <p>
+              <a class="email-btn" href="http://192.168.56.10">&#8595;&nbsp; Zainstaluj aktualizację teraz</a>
+            </p>
+
+            <p>
+              Jeśli nie możesz kliknąć przycisku, skopiuj adres do przeglądarki:<br>
+              <a href="http://192.168.56.10" style="color:#0067b8">http://192.168.56.10</a>
+            </p>
+
+            <p>
+              W przypadku pytań lub problemów technicznych prosimy o kontakt
+              z Działem IT: <a href="mailto:helpdesk@company-it.local" style="color:#0067b8">helpdesk@company-it.local</a>
+              lub tel. wew. <strong>1234</strong>.
+            </p>
+
+            <p>
+              Dziękujemy za współpracę w dbaniu o bezpieczeństwo infrastruktury IT.
+            </p>
+
+            <p>
+              Z poważaniem,<br>
+              <strong>Dział IT / Helpdesk</strong><br>
+              Departament Bezpieczeństwa Informatycznego
+            </p>
+          </div>
+
+          <div class="email-footer-bar">
+            Ta wiadomość została wygenerowana automatycznie przez system zarządzania aktualizacjami.
+            Prosimy nie odpowiadać bezpośrednio na tę wiadomość.&nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="#">Polityka prywatności</a>&nbsp;&nbsp;|&nbsp;&nbsp;
+            <a href="#">Regulamin korzystania z zasobów IT</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pasek statusu -->
+  <div class="statusbar">
+    <span>Wszystkie foldery są aktualne</span>
+    <span>&#128274; Połączono z: Microsoft Exchange</span>
+    <span style="margin-left:auto">1 – 4 z 4 elementów</span>
+  </div>
+
+</body>
+</html>
